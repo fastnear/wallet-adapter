@@ -55,25 +55,25 @@
 export class WalletAdapter {
     /** @type {HTMLIFrameElement} */
     #iframe = null;
-    
+
     /** @type {string} */
     #targetOrigin;
-    
+
     /** @type {string} */
     #widgetUrl;
-    
+
     /** @type {Map<string, Function>} */
     #pending = new Map();
-    
+
     /** @type {WalletState} */
     #state = {};
-    
+
     /** @type {Function} */
     #onStateUpdate;
-  
+
     /** @type {string} */
     static defaultWidgetUrl = 'https://widget.fastnear.com';
-  
+
     /**
      * @param {WalletAdapterConfig} [config]
      */
@@ -87,7 +87,7 @@ export class WalletAdapter {
       this.#onStateUpdate = onStateUpdate;
       window.addEventListener('message', this.#handleMessage.bind(this));
     }
-  
+
     /**
      * Creates an iframe for wallet interaction
      * @param {string} path - Path to load in iframe
@@ -99,13 +99,13 @@ export class WalletAdapter {
       if (this.#iframe) {
         this.#iframe.remove();
       }
-  
+
       // Create URL with parameters
       const url = new URL(path, this.#widgetUrl);
       Object.entries(params).forEach(([key, value]) => {
         url.searchParams.set(key, typeof value === 'string' ? value : JSON.stringify(value));
       });
-  
+
       // Create and configure iframe
       const iframe = document.createElement('iframe');
       iframe.src = url.toString();
@@ -119,11 +119,11 @@ export class WalletAdapter {
       iframe.style.width = '100%';
       iframe.style.height = '100%';
       document.body.appendChild(iframe);
-      
+
       this.#iframe = iframe;
       return iframe;
     }
-  
+
     /**
      * Handles messages from the wallet widget
      * @param {MessageEvent} event
@@ -133,23 +133,23 @@ export class WalletAdapter {
       if (this.#targetOrigin !== '*' && event.origin !== this.#targetOrigin) {
         return;
       }
-  
+
       const { id, type, action, payload } = event.data;
       if (type !== 'wallet-adapter') return;
-  
+
       // Handle close action
       if (action === 'close') {
         this.#iframe?.remove();
         this.#iframe = null;
         return;
       }
-  
+
       // Update state if provided
       if (payload?.state) {
         this.#state = { ...this.#state, ...payload.state };
         this.#onStateUpdate?.(this.#state);
       }
-  
+
       // Resolve pending promise if any
       const resolve = this.#pending.get(id);
       if (resolve) {
@@ -159,7 +159,7 @@ export class WalletAdapter {
         resolve(payload);
       }
     }
-  
+
     /**
      * Sends a message to the wallet widget
      * @param {string} path - Path to load in iframe
@@ -171,9 +171,10 @@ export class WalletAdapter {
       return new Promise((resolve) => {
         const id = Math.random().toString(36).slice(2);
         this.#pending.set(id, resolve);
-        
+        params.id = id;
+
         const iframe = this.#createIframe(path, params);
-  
+
         iframe.onload = () => {
           iframe.contentWindow?.postMessage({
             type: 'wallet-adapter',
@@ -187,7 +188,7 @@ export class WalletAdapter {
         };
       });
     }
-  
+
     /**
      * Get current wallet state
      * @returns {WalletState}
@@ -195,7 +196,7 @@ export class WalletAdapter {
     getState() {
       return { ...this.#state };
     }
-  
+
     /**
      * Sign in with a NEAR wallet
      * @param {SignInConfig} config
@@ -204,7 +205,7 @@ export class WalletAdapter {
     async signIn(config) {
       return this.#sendMessage('/login.html', 'signIn', config);
     }
-  
+
     /**
      * Send a transaction using connected wallet
      * @param {TransactionConfig} config
@@ -213,7 +214,7 @@ export class WalletAdapter {
     async sendTransaction(config) {
       return this.#sendMessage('/sign.html', 'sendTransaction', config);
     }
-  
+
     /**
      * Clean up adapter resources
      */
