@@ -91,20 +91,16 @@ export class WalletAdapter {
     /**
      * Creates an iframe for wallet interaction
      * @param {string} path - Path to load in iframe
-     * @param {Object} params - Parameters to pass to the page
      * @returns {HTMLIFrameElement}
      */
-    #createIframe(path, params = {}) {
+    #createIframe(path) {
       // Remove existing iframe if any
       if (this.#iframe) {
         this.#iframe.remove();
       }
 
-      // Create URL with parameters
+      // Create URL
       const url = new URL(path, this.#widgetUrl);
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.set(key, typeof value === 'string' ? value : JSON.stringify(value));
-      });
 
       // Create and configure iframe
       const iframe = document.createElement('iframe');
@@ -171,16 +167,15 @@ export class WalletAdapter {
       return new Promise((resolve) => {
         const id = Math.random().toString(36).slice(2);
         this.#pending.set(id, resolve);
-        params.id = id;
 
-        const iframe = this.#createIframe(path, params);
+        const iframe = this.#createIframe(path);
 
         iframe.onload = () => {
           iframe.contentWindow?.postMessage({
             type: 'wallet-adapter',
-            id,
             method,
             params: {
+              id,
               ...params,
               state: this.#state
             }
