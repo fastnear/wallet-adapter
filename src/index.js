@@ -72,7 +72,7 @@ export class WalletAdapter {
     #onStateUpdate;
 
     /** @type {string} */
-    static defaultWidgetUrl = 'https://widget.fastnear.com';
+    static defaultWidgetUrl = 'https://wallet-adapter.fastnear.com';
 
     /**
      * @param {WalletAdapterConfig} [config]
