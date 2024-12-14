@@ -19,6 +19,7 @@
  * @property {string} networkId - NEAR network ID ('mainnet' or 'testnet')
  * @property {string} contractId - Contract ID to request access for
  * @property {'near'|'here'|'meteor'} [wallet] - Preferred wallet to use
+ * @property {string} [callbackUrl] - URL to redirect back to after wallet interaction
  */
 
 /**
@@ -33,6 +34,7 @@
  * @property {string} receiverId - Transaction receiver account ID
  * @property {WalletAction[]} actions - Transaction actions to perform
  * @property {'near'|'here'|'meteor'} [wallet] - Preferred wallet to use
+ * @property {string} [callbackUrl] - URL to redirect back to after wallet interaction
  */
 
 /**
@@ -47,6 +49,7 @@
  * @property {string} [widgetUrl] - URL of the wallet widget (defaults to official hosted version)
  * @property {string} [targetOrigin] - Target origin for postMessage (defaults to '*')
  * @property {(state: WalletState) => void} [onStateUpdate] - Called when wallet state changes
+ * @property {string} [callbackUrl] - Default callback URL for wallet interactions (defaults to current page URL)
  */
 
 /**
@@ -72,6 +75,9 @@ export class WalletAdapter {
     #onStateUpdate;
 
     /** @type {string} */
+    #callbackUrl;
+
+    /** @type {string} */
     static defaultWidgetUrl = 'https://wallet-adapter.fastnear.com';
 
     /**
@@ -80,11 +86,13 @@ export class WalletAdapter {
     constructor({
       widgetUrl = WalletAdapter.defaultWidgetUrl,
       targetOrigin = '*',
-      onStateUpdate
+      onStateUpdate,
+      callbackUrl = window.location.href
     } = {}) {
       this.#targetOrigin = targetOrigin;
       this.#widgetUrl = widgetUrl;
       this.#onStateUpdate = onStateUpdate;
+      this.#callbackUrl = callbackUrl;
       window.addEventListener('message', this.#handleMessage.bind(this));
     }
 
@@ -177,7 +185,8 @@ export class WalletAdapter {
             params: {
               id,
               ...params,
-              state: this.#state
+              state: this.#state,
+              callbackUrl: params.callbackUrl || this.#callbackUrl
             }
           }, this.#targetOrigin);
         };
