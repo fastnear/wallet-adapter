@@ -1,6 +1,6 @@
 {
   "name": "@fastnear/wallet-adapter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Client interface for NEAR wallet adapter",
   "repository": "https://github.com/fastnear/wallet-adapter.git",
   "type": "module",
